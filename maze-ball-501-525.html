@@ -1437,4 +1437,44 @@ document.getElementById('introStart').addEventListener('click',()=>{
  // The preview has no Play Billing SDK: 14.99 PLN is the base offer, not a guessed FX conversion.
 })();
 </script>
-</body></html>
+<style>
+#mbReportBtn{position:fixed;right:12px;bottom:12px;z-index:10000;border:1px solid #76d6ee;border-radius:13px;background:#10354c;color:white;padding:12px 15px;font:700 13px system-ui;box-shadow:0 5px 20px #0009}
+#mbReportPanel{display:none;position:fixed;inset:0;z-index:10001;background:#07111bf2;color:#eaf6ff;overflow:auto;padding:20px;font:14px system-ui}
+#mbReportPanel.show{display:block}#mbReportPanel .mbWrap{max-width:680px;margin:auto}#mbReportPanel h2{font-size:20px;margin:10px 0}#mbReportPanel textarea{width:100%;min-height:46vh;background:#0e2637;color:#fff;border:1px solid #55758a;border-radius:9px;padding:12px;font:12px monospace;white-space:pre}#mbReportPanel button{border:1px solid #6795aa;background:#16445c;color:white;border-radius:10px;padding:11px 14px;margin:5px 5px 5px 0;font-weight:700}#mbReportPanel p{line-height:1.5}
+</style>
+<button id="mbReportBtn" type="button">📊 CZASY</button>
+<section id="mbReportPanel" aria-label="Raport czasów"><div class="mbWrap">
+<button id="mbReportClose" type="button">✕ ZAMKNIJ</button><h2>Raport czasów Maze Ball</h2>
+<p>Lista zawiera najlepsze czasy zapisane na tym urządzeniu. Skopiuj raport i wklej go do naszej rozmowy. Możesz też pobrać plik TXT.</p>
+<p id="mbReportCount"></p><button id="mbReportCopy" type="button">📋 KOPIUJ RAPORT</button><button id="mbReportDownload" type="button">⬇ POBIERZ TXT</button><button id="mbReportAll" type="button">WSZYSTKIE 1–525</button><button id="mbReportNew" type="button">TYLKO 501–525</button>
+<textarea id="mbReportText" readonly spellcheck="false"></textarea><p id="mbReportStatus" aria-live="polite"></p>
+</div></section>
+<script>
+(function(){
+ const panel=document.getElementById('mbReportPanel'),output=document.getElementById('mbReportText'),count=document.getElementById('mbReportCount'),status=document.getElementById('mbReportStatus');
+ let onlyNew=true;
+ function render(){
+  const rows=['MAZE BALL — RAPORT NAJLEPSZYCH CZASÓW','Zakres: '+(onlyNew?'501–525':'1–525'),'Poziom | Rekord | 3 gwiazdki | 2 gwiazdki | Limit'];
+  let done=0;
+  for(let i=onlyNew?500:0;i<525;i++){
+   const value=bestTimes[i],lim=balancedTimeLimits[i];
+   const time=Number.isFinite(value)?formatTime(value):'BRAK';
+   if(Number.isFinite(value))done++;
+   rows.push((i+1)+' | '+time+' | '+formatTime(lim[0])+' | '+formatTime(lim[1])+' | '+formatTime(lim[2]));
+  }
+  count.textContent='Zapisane rekordy: '+done+' / '+(onlyNew?25:525);
+  output.value=rows.join('\n');status.textContent='';
+ }
+ document.getElementById('mbReportBtn').onclick=()=>{render();panel.classList.add('show')};
+ document.getElementById('mbReportClose').onclick=()=>panel.classList.remove('show');
+ document.getElementById('mbReportAll').onclick=()=>{onlyNew=false;render()};
+ document.getElementById('mbReportNew').onclick=()=>{onlyNew=true;render()};
+ document.getElementById('mbReportCopy').onclick=async()=>{
+  try{await navigator.clipboard.writeText(output.value);status.textContent='Skopiowano! Wklej raport do ChatGPT.'}
+  catch(e){output.focus();output.select();status.textContent='Zaznaczony raport — użyj opcji Kopiuj w telefonie.'}
+ };
+ document.getElementById('mbReportDownload').onclick=()=>{
+  const blob=new Blob([output.value],{type:'text/plain;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=onlyNew?'maze-ball-czasy-501-525.txt':'maze-ball-czasy-1-525.txt';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+ };
+})();
+</script></body></html>
